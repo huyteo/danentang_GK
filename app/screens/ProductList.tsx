@@ -22,7 +22,7 @@ interface Product {
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [modalVisible, setModalVisible] = useState(false); // State để hiển thị modal
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -78,7 +78,7 @@ const ProductList: React.FC = () => {
       {/* Floating Button thêm sản phẩm */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setModalVisible(true)} // Khi bấm, mở modal
+        onPress={() => setModalVisible(true)}
       >
         <Feather name="plus" size={24} color="white" />
       </TouchableOpacity>
@@ -88,21 +88,20 @@ const ProductList: React.FC = () => {
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)} // Bấm Back trên Android sẽ đóng
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.overlay}>
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)} // Nhấn ra ngoài để đóng modal
+        >
           <View style={styles.modalContent}>
-            {/* Nút đóng modal (Icon "X") */}
-            <TouchableOpacity
-              style={styles.closeIcon}
-              onPress={() => setModalVisible(false)}
-            >
-              <Feather name="x" size={24} color="black" />
-            </TouchableOpacity>
-
-            <AddProduct />
+            <AddProduct
+              onClose={() => setModalVisible(false)}
+              onProductAdded={fetchProducts}
+            />
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -178,22 +177,13 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)", // Màu overlay mờ
   },
   modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "40%",
+    backgroundColor: "transparent", // Xóa background trắng
     alignItems: "center",
-    position: "relative",
-  },
-  closeIcon: {
-    position: "absolute",
-    top: 10,
-    right: 10,
   },
 });
 
