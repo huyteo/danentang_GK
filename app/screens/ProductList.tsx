@@ -13,16 +13,17 @@ import { Feather, MaterialIcons } from "@expo/vector-icons";
 import AddProduct from "./AddProduct";
 
 interface Product {
-  _id: string;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
+  idsanpham: string;
+  loaisp: string;
+  gia: number;
+  hinhanh: string;
 }
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -33,42 +34,52 @@ const ProductList: React.FC = () => {
     setProducts(response.data);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteProduct(id);
-    fetchProducts();
+  // Xử lý mở modal xác nhận xóa
+  const confirmDelete = (product: Product) => {
+    setSelectedProduct(product);
+    setDeleteModalVisible(true);
+  };
+
+  // Xử lý xóa sản phẩm
+  const handleDelete = async () => {
+    if (selectedProduct) {
+      await deleteProduct(selectedProduct.idsanpham);
+      fetchProducts();
+      setDeleteModalVisible(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Product Manage</Text>
+        <Text style={styles.headerText}>Quản lý sản phẩm</Text>
         <TouchableOpacity>
-          <Feather name="log-out" size={24} color="black" />
+          <Feather name="log-out" size={24} color="#F8F8FF" />
         </TouchableOpacity>
       </View>
 
       {/* Danh sách sản phẩm */}
       <FlatList
         data={products}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.idsanpham}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Image source={{ uri: item.hinhanh }} style={styles.image} />
             <View style={styles.infoContainer}>
-              <Text style={styles.productName}>Name: {item.name}</Text>
-              <Text style={styles.category}>Category: {item.category}</Text>
+              <Text style={styles.productID}>ID: {item.idsanpham}</Text>
+              <Text style={styles.category}>Loại: {item.loaisp}</Text>
               <Text style={styles.price}>
-                Price:{" "}
+                Giá:{" "}
                 <Text style={{ color: "green", fontWeight: "bold" }}>
-                  {item.price} VND
+                  {item.gia} VND
                 </Text>
               </Text>
             </View>
             <TouchableOpacity>
               <Feather name="edit" size={20} color="green" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDelete(item._id)}>
+            <TouchableOpacity onPress={() => confirmDelete(item)}>
               <MaterialIcons name="delete" size={24} color="red" />
             </TouchableOpacity>
           </View>
@@ -83,7 +94,7 @@ const ProductList: React.FC = () => {
         <Feather name="plus" size={24} color="white" />
       </TouchableOpacity>
 
-      {/* Modal sửa lỗi overlay */}
+      {/* Modal thêm sản phẩm */}
       <Modal
         visible={modalVisible}
         transparent
@@ -93,7 +104,7 @@ const ProductList: React.FC = () => {
         <TouchableOpacity
           style={styles.overlay}
           activeOpacity={1}
-          onPress={() => setModalVisible(false)} // Nhấn ra ngoài để đóng modal
+          onPress={() => setModalVisible(false)}
         >
           <View style={styles.modalContent}>
             <AddProduct
@@ -103,6 +114,27 @@ const ProductList: React.FC = () => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Modal xác nhận xóa */}
+      <Modal visible={deleteModalVisible} transparent animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Xác nhận xóa</Text>
+            <Text style={styles.modalMessage}>
+              Bạn có chắc là bạn muốn xóa sản phẩm này không?
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                <Text style={styles.cancelButton}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDelete}>
+                <Text style={styles.deleteButton}>Xóa</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -110,7 +142,7 @@ const ProductList: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#dfffd6",
+    backgroundColor: "#c7d0f0",
     paddingHorizontal: 10,
     paddingTop: 20,
   },
@@ -118,7 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "green",
+    backgroundColor: "#276cf5",
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -127,7 +159,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "black",
+    color: "#F8F8FF",
   },
   card: {
     flexDirection: "row",
@@ -151,13 +183,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
   },
-  productName: {
+  productID: {
     fontSize: 16,
     fontWeight: "bold",
   },
   category: {
     fontSize: 14,
     color: "#555",
+    marginBottom: 2,
   },
   price: {
     fontSize: 14,
@@ -167,7 +200,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    backgroundColor: "purple",
+    backgroundColor: "#276cf5",
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -182,8 +215,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "transparent", // Xóa background trắng
+    backgroundColor: "transparent",
     alignItems: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    width: 300,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  cancelButton: {
+    color: "blue",
+    fontSize: 16,
+    padding: 10,
+  },
+  deleteButton: {
+    color: "red",
+    fontSize: 16,
+    padding: 10,
   },
 });
 

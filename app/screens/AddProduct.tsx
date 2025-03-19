@@ -7,38 +7,23 @@ import {
   Image,
   Alert,
   StyleSheet,
+  Keyboard,
 } from "react-native";
-import { launchImageLibrary } from "react-native-image-picker";
 import * as ImagePicker from "expo-image-picker";
 import { addProduct } from "../../scripts/api";
 
-// Định nghĩa kiểu cho props
 interface AddProductProps {
   onClose: () => void;
   onProductAdded: () => void;
 }
 
 const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [price, setPrice] = useState("");
-  const [image, setImage] = useState("");
+  const [idsanpham, setIdsanpham] = useState("");
+  const [loaisp, setLoaisp] = useState("");
+  const [gia, setGia] = useState("");
+  const [hinhanh, setHinhanh] = useState("");
 
   // Hàm chọn ảnh
-  //   const pickImage = async () => {
-  //   try {
-  //     const result = await launchImageLibrary({ mediaType: "photo" });
-
-  //     if (result.didCancel) return;
-
-  //     if (result.assets && result.assets.length > 0 && result.assets[0].uri) {
-  //       setImage(result.assets[0].uri);
-  //     }
-  //   } catch (error) {
-  //     console.error("❌ Lỗi khi chọn ảnh:", error);
-  //   }
-  // };
-
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -48,22 +33,24 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      setHinhanh(result.assets[0].uri);
+
+      // Ẩn bàn phím & mất focus khỏi tất cả các input
+      Keyboard.dismiss();
     }
   };
 
-  // Hàm thêm sản phẩm
   const handleSubmit = async () => {
-    if (!name || !category || !price || !image) {
+    if (!idsanpham || !loaisp || !gia || !hinhanh) {
       Alert.alert("⚠️ Lỗi", "Vui lòng điền đầy đủ thông tin!");
       return;
     }
 
     const newProduct = {
-      name,
-      category,
-      price: Number(price),
-      image,
+      idsanpham,
+      loaisp,
+      gia: Number(gia),
+      hinhanh,
     };
 
     try {
@@ -71,15 +58,12 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       Alert.alert("✅ Thành công", "Thêm sản phẩm thành công!");
 
       // Reset form
-      setName("");
-      setCategory("");
-      setPrice("");
-      setImage("");
+      setIdsanpham("");
+      setLoaisp("");
+      setGia("");
+      setHinhanh("");
 
-      // Gọi hàm cập nhật danh sách sản phẩm
       onProductAdded();
-
-      // Đóng modal
       onClose();
     } catch (error) {
       console.error("❌ Lỗi khi thêm sản phẩm:", error);
@@ -91,28 +75,30 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Thêm Sản Phẩm</Text>
       <TextInput
-        placeholder="Nhập tên sản phẩm"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Nhập giá sản phẩm"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="numeric"
+        placeholder="Nhập ID sản phẩm"
+        value={idsanpham}
+        onChangeText={setIdsanpham}
         style={styles.input}
       />
       <TextInput
         placeholder="Nhập loại sản phẩm"
-        value={category}
-        onChangeText={setCategory}
+        value={loaisp}
+        onChangeText={setLoaisp}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Nhập giá sản phẩm"
+        value={gia}
+        onChangeText={setGia}
+        keyboardType="numeric"
         style={styles.input}
       />
       <TouchableOpacity onPress={pickImage} style={styles.pickImageButton}>
         <Text style={styles.buttonText}>Chọn Ảnh</Text>
       </TouchableOpacity>
-      {image ? <Image source={{ uri: image }} style={styles.image} /> : null}
+      {hinhanh ? (
+        <Image source={{ uri: hinhanh }} style={styles.image} />
+      ) : null}
       <TouchableOpacity onPress={handleSubmit} style={styles.addButton}>
         <Text style={styles.buttonText}>Thêm</Text>
       </TouchableOpacity>
