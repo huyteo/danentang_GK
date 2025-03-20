@@ -8,6 +8,7 @@ import {
   Alert,
   StyleSheet,
   Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { addProduct } from "../../scripts/api";
@@ -17,15 +18,24 @@ interface AddProductProps {
   onProductAdded: () => void;
 }
 
+// interface Product {
+//   _id: string;
+//   tensp: string;
+//   loaisp: string;
+//   gia: number;
+//   hinhanh: string;
+// }
+
 const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
   const [idsanpham, setIdsanpham] = useState("");
   const [loaisp, setLoaisp] = useState("");
   const [gia, setGia] = useState("");
   const [hinhanh, setHinhanh] = useState("");
+  const [tenhinhanh, setTenHinhanh] = useState("");
 
   // Hàm chọn ảnh
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
@@ -33,10 +43,10 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
     });
 
     if (!result.canceled) {
-      setHinhanh(result.assets[0].uri);
-
-      // Ẩn bàn phím & mất focus khỏi tất cả các input
-      Keyboard.dismiss();
+      const uri = result.assets[0].uri;
+      const filename = uri.split("/").pop() || "unknown.png";
+      setHinhanh(uri);
+      setTenHinhanh(filename);
     }
   };
 
@@ -46,15 +56,17 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       return;
     }
 
-    const newProduct = {
-      idsanpham,
-      loaisp,
-      gia: Number(gia),
-      hinhanh,
-    };
-
+    const formData = new FormData();
+    formData.append("idsanpham", idsanpham);
+    formData.append("loaisp", loaisp);
+    formData.append("gia", gia);
+    formData.append("hinhanh", {
+      uri: hinhanh,
+      name: tenhinhanh,
+      type: "image/jpeg",
+    } as any);
     try {
-      await addProduct(newProduct);
+      await addProduct(formData);
       Alert.alert("✅ Thành công", "Thêm sản phẩm thành công!");
 
       // Reset form
@@ -62,6 +74,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       setLoaisp("");
       setGia("");
       setHinhanh("");
+      setTenHinhanh("");
 
       onProductAdded();
       onClose();
@@ -72,37 +85,39 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Thêm Sản Phẩm</Text>
-      <TextInput
-        placeholder="Nhập ID sản phẩm"
-        value={idsanpham}
-        onChangeText={setIdsanpham}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Nhập loại sản phẩm"
-        value={loaisp}
-        onChangeText={setLoaisp}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Nhập giá sản phẩm"
-        value={gia}
-        onChangeText={setGia}
-        keyboardType="numeric"
-        style={styles.input}
-      />
-      <TouchableOpacity onPress={pickImage} style={styles.pickImageButton}>
-        <Text style={styles.buttonText}>Chọn Ảnh</Text>
-      </TouchableOpacity>
-      {hinhanh ? (
-        <Image source={{ uri: hinhanh }} style={styles.image} />
-      ) : null}
-      <TouchableOpacity onPress={handleSubmit} style={styles.addButton}>
-        <Text style={styles.buttonText}>Thêm</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Thêm Sản Phẩm</Text>
+        <TextInput
+          placeholder="Nhập ID sản phẩm"
+          value={idsanpham}
+          onChangeText={setIdsanpham}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Nhập loại sản phẩm"
+          value={loaisp}
+          onChangeText={setLoaisp}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Nhập giá sản phẩm"
+          value={gia}
+          onChangeText={setGia}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+        <TouchableOpacity onPress={pickImage} style={styles.pickImageButton}>
+          <Text style={styles.buttonText}>Chọn Ảnh</Text>
+        </TouchableOpacity>
+        {hinhanh ? (
+          <Image source={{ uri: hinhanh }} style={styles.image} />
+        ) : null}
+        <TouchableOpacity onPress={handleSubmit} style={styles.addButton}>
+          <Text style={styles.buttonText}>Thêm</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

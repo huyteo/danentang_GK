@@ -7,23 +7,30 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Platform,
 } from "react-native";
 import { getProducts, deleteProduct } from "../../scripts/api";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import AddProduct from "./AddProduct";
+import UpdateProduct from "./UpdateProduct";
+import { Stack } from "expo-router";
 
 interface Product {
+  _id: string;
   idsanpham: string;
   loaisp: string;
   gia: number;
   hinhanh: string;
+  tenanh: string;
 }
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -32,6 +39,10 @@ const ProductList: React.FC = () => {
   const fetchProducts = async () => {
     const response = await getProducts();
     setProducts(response.data);
+    console.log("Dữ liệu sản phẩm:", response.data);
+    response.data.forEach((product: { _id: string }) => {
+      console.log("ID sản phẩm:", product._id);
+    });
   };
 
   // Xử lý mở modal xác nhận xóa
@@ -49,93 +60,131 @@ const ProductList: React.FC = () => {
     }
   };
 
+  // ✅ Xử lý mở modal cập nhật sản phẩm
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setUpdateModalVisible(true);
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Quản lý sản phẩm</Text>
-        <TouchableOpacity>
-          <Feather name="log-out" size={24} color="#F8F8FF" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Danh sách sản phẩm */}
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.idsanpham}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Image source={{ uri: item.hinhanh }} style={styles.image} />
-            <View style={styles.infoContainer}>
-              <Text style={styles.productID}>ID: {item.idsanpham}</Text>
-              <Text style={styles.category}>Loại: {item.loaisp}</Text>
-              <Text style={styles.price}>
-                Giá:{" "}
-                <Text style={{ color: "green", fontWeight: "bold" }}>
-                  {item.gia} VND
-                </Text>
-              </Text>
-            </View>
-            <TouchableOpacity>
-              <Feather name="edit" size={20} color="green" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => confirmDelete(item)}>
-              <MaterialIcons name="delete" size={24} color="red" />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-
-      {/* Floating Button thêm sản phẩm */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setModalVisible(true)}
-      >
-        <Feather name="plus" size={24} color="white" />
-      </TouchableOpacity>
-
-      {/* Modal thêm sản phẩm */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContent}>
-            <AddProduct
-              onClose={() => setModalVisible(false)}
-              onProductAdded={fetchProducts}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Modal xác nhận xóa */}
-      <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Xác nhận xóa</Text>
-            <Text style={styles.modalMessage}>
-              Bạn có chắc là bạn muốn xóa sản phẩm này không?
-            </Text>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
-                <Text style={styles.cancelButton}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete}>
-                <Text style={styles.deleteButton}>Xóa</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Quản lý sản phẩm</Text>
+          <TouchableOpacity>
+            <Feather name="log-out" size={24} color="#F8F8FF" />
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </View>
+
+        {/* Danh sách sản phẩm */}
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.idsanpham}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Image
+                source={{
+                  uri: `http://192.168.1.8:3000/uploads/${item.hinhanh}`,
+                }}
+                style={styles.image}
+              />
+              <View style={styles.infoContainer}>
+                <Text style={styles.productID}>ID: {item.idsanpham}</Text>
+                <Text style={styles.category}>Loại: {item.loaisp}</Text>
+                <Text style={styles.price}>
+                  Giá:{" "}
+                  <Text style={{ color: "green", fontWeight: "bold" }}>
+                    {item.gia} VND
+                  </Text>
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => handleEdit(item)}>
+                <Feather name="edit" size={20} color="green" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => confirmDelete(item)}>
+                <MaterialIcons name="delete" size={24} color="red" />
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+
+        {/* Floating Button thêm sản phẩm */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
+        >
+          <Feather name="plus" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Modal thêm sản phẩm */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPress={() => setModalVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              <AddProduct
+                onClose={() => setModalVisible(false)}
+                onProductAdded={fetchProducts}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* ✅ Modal cập nhật sản phẩm */}
+        <Modal
+          visible={updateModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setUpdateModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPress={() => setUpdateModalVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              {editingProduct && (
+                <UpdateProduct
+                  product={editingProduct}
+                  onClose={() => setUpdateModalVisible(false)}
+                  onProductUpdated={fetchProducts}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal xác nhận xóa */}
+        <Modal visible={deleteModalVisible} transparent animationType="fade">
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Xác nhận xóa</Text>
+              <Text style={styles.modalMessage}>
+                Bạn có chắc là bạn muốn xóa sản phẩm này không?
+              </Text>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                  <Text style={styles.cancelButton}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDelete}>
+                  <Text style={styles.deleteButton}>Xóa</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
   );
 };
 
@@ -144,7 +193,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#c7d0f0",
     paddingHorizontal: 10,
-    paddingTop: 20,
+    paddingTop: Platform.OS === "ios" ? 56 : 20,
   },
   header: {
     flexDirection: "row",
