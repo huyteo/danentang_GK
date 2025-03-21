@@ -39,8 +39,8 @@ const SignUp = () => {
     try {
       const userData = { name, email, password, repeatPassword, agreeToTerms };
       await signup(userData);
-      Alert.alert("✅ Thành công", "Đăng ký thành công!", [
-        { text: "OK", onPress: () => router.push("/screens/ProductList") }, // Sửa đường dẫn
+      Alert.alert("✅ Thành công", "Đăng ký thành công! Vui lòng đăng nhập.", [
+        { text: "OK", onPress: () => router.push("/authentication/Login") }, // Chuyển sang Login
       ]);
     } catch (error) {
       const axiosError = error as AxiosError<{ error: string }>;
@@ -113,7 +113,7 @@ const SignUp = () => {
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/screens/ProductList")}>
+        <TouchableOpacity onPress={() => router.push("/authentication/Login")}>
           <Text style={styles.link}>I am already member</Text>
         </TouchableOpacity>
 
@@ -131,7 +131,7 @@ const SignUp = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 50,
+    padding: 20,
     backgroundColor: "#fff",
     alignItems: "center",
   },

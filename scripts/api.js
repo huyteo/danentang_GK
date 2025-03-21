@@ -22,3 +22,7 @@ export const updateProduct = async (id, updatedData) => {
 export const signup = async (userData) => {
   return await axios.post(`${API_URL}/signup`, userData);
 };
+
+export const login = async (loginData) => {
+  return await axios.post(`${API_URL}/login`, loginData);
+};

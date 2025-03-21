@@ -14,14 +14,21 @@ export default function App() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/screens/ProductList")} // Sửa đường dẫn
+          onPress={() => router.push("/screens/ProductList")} // Đường dẫn đến ProductList
         >
           <Text style={styles.text}>Go to Product List</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={[styles.button, styles.loginButton]} // Thêm nút Login
+          onPress={() => router.push("/authentication/Login")} // Đường dẫn đến Login
+        >
+          <Text style={styles.text}>Login</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.button, styles.signUpButton]}
-          onPress={() => router.push("/authentication/Signup")} // Sửa đường dẫn
+          onPress={() => router.push("/authentication/Signup")} // Đường dẫn đến Signup
         >
           <Text style={styles.text}>Sign Up</Text>
         </TouchableOpacity>
@@ -49,6 +56,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     marginVertical: 10,
+  },
+  loginButton: {
+    backgroundColor: "#ff9500", // Màu khác để phân biệt nút Login
   },
   signUpButton: {
     backgroundColor: "#28a745",

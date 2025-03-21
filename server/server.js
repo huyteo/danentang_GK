@@ -212,4 +212,35 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// API đăng nhập người dùng
+app.post("/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    if (!name || !password) {
+      return res.status(400).json({ error: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    const user = await User.findOne({ name });
+    if (!user) {
+      return res.status(400).json({ error: "Tên người dùng không tồn tại" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: "Mật khẩu không đúng" });
+    }
+
+    res
+      .status(200)
+      .json({
+        message: "Đăng nhập thành công",
+        user: { name: user.name, email: user.email },
+      });
+  } catch (error) {
+    console.error("❌ Lỗi khi đăng nhập:", error);
+    res.status(500).json({ error: "Lỗi khi đăng nhập" });
+  }
+});
+
 app.listen(3000, () => console.log("🚀 Server running on port 3000"));
