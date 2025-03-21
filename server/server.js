@@ -4,6 +4,7 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt"); // Thêm bcrypt để mã hóa mật khẩu
 const app = express();
 
 mongoose
@@ -16,13 +17,23 @@ app.use(cors());
 
 // Schema sản phẩm
 const ProductSchema = new mongoose.Schema({
-  tensp: { type: String, required: true, unique: true, trim: true }, // ten san phẩm
-  loaisp: { type: String, required: true, trim: true }, // Loại sản phẩm
-  gia: { type: Number, required: true, min: 1 }, // Giá
-  hinhanh: { type: String, default: "" }, // Hình ảnh
+  tensp: { type: String, required: true, unique: true, trim: true },
+  loaisp: { type: String, required: true, trim: true },
+  gia: { type: Number, required: true, min: 1 },
+  hinhanh: { type: String, default: "" },
 });
 
 const Product = mongoose.model("Product", ProductSchema);
+
+// Schema người dùng
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, trim: true },
+  password: { type: String, required: true },
+  agreeToTerms: { type: Boolean, required: true },
+});
+
+const User = mongoose.model("User", UserSchema);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -56,7 +67,14 @@ app.post("/add-products", upload.single("hinhanh"), async (req, res) => {
 
     const { tensp, loaisp, gia } = req.body;
     if (!tensp || !loaisp || !gia || !req.file) {
-      return res.status(400).json({ error: "Vui lòng nhập đầy đủ thông tin" });
+      return res
+        .status(400)
+        .json({ error: "Vui lòng nhập đầy đủ thông tin, bao gồm ảnh" });
+    }
+
+    const giaNumber = Number(gia);
+    if (isNaN(giaNumber) || giaNumber < 1) {
+      return res.status(400).json({ error: "Giá phải là một số lớn hơn 0" });
     }
 
     const existingProduct = await Product.findOne({ tensp });
@@ -67,8 +85,8 @@ app.post("/add-products", upload.single("hinhanh"), async (req, res) => {
     const newProduct = new Product({
       tensp,
       loaisp,
-      gia,
-      hinhanh: req.file.filename, // Lưu tên file ảnh
+      gia: giaNumber,
+      hinhanh: req.file.filename,
     });
 
     await newProduct.save();
@@ -79,10 +97,10 @@ app.post("/add-products", upload.single("hinhanh"), async (req, res) => {
   }
 });
 
-// API xóa sản phẩm (Tìm bằng idsanpham thay vì _id của MongoDB)
+// API xóa sản phẩm
 app.delete("/products/:id", async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id); // Sử dụng _id
+    const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {
       return res.status(404).json({ error: "Sản phẩm không tồn tại" });
     }
@@ -91,6 +109,7 @@ app.delete("/products/:id", async (req, res) => {
     res.status(500).json({ error: "Lỗi khi xóa sản phẩm" });
   }
 });
+
 app.put("/products-update/:id", upload.single("hinhanh"), async (req, res) => {
   try {
     const { tensp, loaisp, gia } = req.body;
@@ -100,20 +119,21 @@ app.put("/products-update/:id", upload.single("hinhanh"), async (req, res) => {
     console.log("📥 Dữ liệu từ body:", req.body);
     console.log("📸 File upload:", req.file);
 
-    // Kiểm tra ID có hợp lệ không
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "ID sản phẩm không hợp lệ" });
     }
 
     let updateFields = {};
-
     if (tensp?.trim()) updateFields.tensp = tensp.trim();
     if (loaisp?.trim()) updateFields.loaisp = loaisp.trim();
-    if (gia !== undefined && gia !== "") updateFields.gia = Number(gia);
-
-    if (req.file) {
-      updateFields.hinhanh = req.file.filename;
+    if (gia !== undefined && gia !== "") {
+      const giaNumber = Number(gia);
+      if (isNaN(giaNumber) || giaNumber < 1) {
+        return res.status(400).json({ error: "Giá phải là một số lớn hơn 0" });
+      }
+      updateFields.gia = giaNumber;
     }
+    if (req.file) updateFields.hinhanh = req.file.filename;
 
     console.log("📝 Trường cần cập nhật:", updateFields);
 
@@ -138,6 +158,57 @@ app.put("/products-update/:id", upload.single("hinhanh"), async (req, res) => {
   } catch (error) {
     console.error("❌ Lỗi server:", error);
     res.status(500).json({ error: "Lỗi khi cập nhật sản phẩm" });
+  }
+});
+
+// API đăng ký người dùng
+app.post("/signup", async (req, res) => {
+  try {
+    const { name, email, password, repeatPassword, agreeToTerms } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !repeatPassword ||
+      agreeToTerms === undefined
+    ) {
+      return res.status(400).json({ error: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    if (password !== repeatPassword) {
+      return res.status(400).json({ error: "Mật khẩu không khớp" });
+    }
+
+    if (!agreeToTerms) {
+      return res
+        .status(400)
+        .json({ error: "Bạn phải đồng ý với điều khoản dịch vụ" });
+    }
+
+    // Kiểm tra email đã tồn tại chưa
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email đã được sử dụng" });
+    }
+
+    // Mã hóa mật khẩu
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Tạo người dùng mới
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      agreeToTerms,
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: "Đăng ký thành công" });
+  } catch (error) {
+    console.error("❌ Lỗi khi đăng ký:", error);
+    res.status(500).json({ error: "Lỗi khi đăng ký người dùng" });
   }
 });
 

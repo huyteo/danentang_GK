@@ -18,3 +18,7 @@ export const deleteProduct = async (id) => {
 export const updateProduct = async (id, updatedData) => {
   return await axios.put(`${API_URL}/products-update/${id}`, updatedData);
 };
+
+export const signup = async (userData) => {
+  return await axios.post(`${API_URL}/signup`, userData);
+};

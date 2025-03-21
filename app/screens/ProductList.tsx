@@ -13,7 +13,7 @@ import { getProducts, deleteProduct } from "../../scripts/api";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import AddProduct from "./AddProduct";
 import UpdateProduct from "./UpdateProduct";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 
 interface Product {
   _id: string;
@@ -24,7 +24,8 @@ interface Product {
   tenanh: string;
 }
 
-const ProductList: React.FC = () => {
+const ProductList = () => {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -53,7 +54,7 @@ const ProductList: React.FC = () => {
 
   const handleDelete = async () => {
     if (selectedProduct) {
-      await deleteProduct(selectedProduct._id); // Sử dụng _id thay vì tensp
+      await deleteProduct(selectedProduct._id);
       fetchProducts();
       setDeleteModalVisible(false);
     }
@@ -70,7 +71,9 @@ const ProductList: React.FC = () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Quản lý sản phẩm</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/authentication/Signup")}
+          >
             <Feather name="log-out" size={24} color="#F8F8FF" />
           </TouchableOpacity>
         </View>
