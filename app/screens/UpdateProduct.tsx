@@ -16,7 +16,7 @@ import axios from "axios";
 interface UpdateProductProps {
   product: {
     _id: string;
-    idsanpham: string;
+    tensp: string;
     loaisp: string;
     gia: number;
     hinhanh: string;
@@ -30,7 +30,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
   onClose,
   onProductUpdated,
 }) => {
-  const [idsanpham, setIdsanpham] = useState(product.idsanpham);
+  const [tensp, setTensp] = useState(product.tensp);
   const [loaisp, setLoaisp] = useState(product.loaisp);
   const [gia, setGia] = useState(product.gia.toString());
   const [hinhanh, setHinhanh] = useState(product.hinhanh);
@@ -64,13 +64,13 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
 
   // Hàm gọi API để cập nhật sản phẩm
   const handleUpdate = async () => {
-    if (!idsanpham || !loaisp || !gia) {
+    if (!tensp || !loaisp || !gia) {
       Alert.alert("⚠️ Lỗi", "Vui lòng điền đầy đủ thông tin!");
       return;
     }
 
     const formData = new FormData();
-    formData.append("idsanpham", idsanpham);
+    formData.append("idsanpham", tensp);
     formData.append("loaisp", loaisp);
     formData.append("gia", gia);
     if (tenhinhanh) {
@@ -114,8 +114,8 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
         <Text style={styles.title}>Cập Nhật Sản Phẩm</Text>
         <TextInput
           placeholder="Nhập ID sản phẩm"
-          value={idsanpham}
-          onChangeText={setIdsanpham}
+          value={tensp}
+          onChangeText={setTensp}
           style={styles.input}
         />
         <TextInput

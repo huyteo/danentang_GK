@@ -17,7 +17,7 @@ import { Stack } from "expo-router";
 
 interface Product {
   _id: string;
-  idsanpham: string;
+  tensp: string;
   loaisp: string;
   gia: number;
   hinhanh: string;
@@ -37,30 +37,28 @@ const ProductList: React.FC = () => {
   }, []);
 
   const fetchProducts = async () => {
-    const response = await getProducts();
-    setProducts(response.data);
-    console.log("Dữ liệu sản phẩm:", response.data);
-    response.data.forEach((product: { _id: string }) => {
-      console.log("ID sản phẩm:", product._id);
-    });
+    try {
+      const response = await getProducts();
+      console.log("Dữ liệu từ API:", response.data);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+    }
   };
 
-  // Xử lý mở modal xác nhận xóa
   const confirmDelete = (product: Product) => {
     setSelectedProduct(product);
     setDeleteModalVisible(true);
   };
 
-  // Xử lý xóa sản phẩm
   const handleDelete = async () => {
     if (selectedProduct) {
-      await deleteProduct(selectedProduct.idsanpham);
+      await deleteProduct(selectedProduct._id); // Sử dụng _id thay vì tensp
       fetchProducts();
       setDeleteModalVisible(false);
     }
   };
 
-  // ✅ Xử lý mở modal cập nhật sản phẩm
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setUpdateModalVisible(true);
@@ -70,7 +68,6 @@ const ProductList: React.FC = () => {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Quản lý sản phẩm</Text>
           <TouchableOpacity>
@@ -78,10 +75,9 @@ const ProductList: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Danh sách sản phẩm */}
         <FlatList
           data={products}
-          keyExtractor={(item) => item.idsanpham}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Image
@@ -91,17 +87,17 @@ const ProductList: React.FC = () => {
                 style={styles.image}
               />
               <View style={styles.infoContainer}>
-                <Text style={styles.productID}>ID: {item.idsanpham}</Text>
+                <Text style={styles.productID}>Tên: {item.tensp}</Text>
                 <Text style={styles.category}>Loại: {item.loaisp}</Text>
                 <Text style={styles.price}>
                   Giá:{" "}
-                  <Text style={{ color: "green", fontWeight: "bold" }}>
+                  <Text style={{ color: "#7187f5", fontWeight: "bold" }}>
                     {item.gia} VND
                   </Text>
                 </Text>
               </View>
               <TouchableOpacity onPress={() => handleEdit(item)}>
-                <Feather name="edit" size={20} color="green" />
+                <Feather name="edit" size={20} color="#7187f5" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmDelete(item)}>
                 <MaterialIcons name="delete" size={24} color="red" />
@@ -110,7 +106,6 @@ const ProductList: React.FC = () => {
           )}
         />
 
-        {/* Floating Button thêm sản phẩm */}
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setModalVisible(true)}
@@ -118,7 +113,6 @@ const ProductList: React.FC = () => {
           <Feather name="plus" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Modal thêm sản phẩm */}
         <Modal
           visible={modalVisible}
           transparent
@@ -139,7 +133,6 @@ const ProductList: React.FC = () => {
           </TouchableOpacity>
         </Modal>
 
-        {/* ✅ Modal cập nhật sản phẩm */}
         <Modal
           visible={updateModalVisible}
           transparent
@@ -163,7 +156,6 @@ const ProductList: React.FC = () => {
           </TouchableOpacity>
         </Modal>
 
-        {/* Modal xác nhận xóa */}
         <Modal visible={deleteModalVisible} transparent animationType="fade">
           <View style={styles.modalBackground}>
             <View style={styles.modalContainer}>
@@ -171,7 +163,6 @@ const ProductList: React.FC = () => {
               <Text style={styles.modalMessage}>
                 Bạn có chắc là bạn muốn xóa sản phẩm này không?
               </Text>
-
               <View style={styles.modalButtons}>
                 <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
                   <Text style={styles.cancelButton}>Hủy</Text>

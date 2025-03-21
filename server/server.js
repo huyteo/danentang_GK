@@ -14,9 +14,9 @@ mongoose
 app.use(express.json());
 app.use(cors());
 
-// Schema sản phẩm (đã sửa theo đề bài)
+// Schema sản phẩm
 const ProductSchema = new mongoose.Schema({
-  idsanpham: { type: String, required: true, unique: true, trim: true }, // ID tự tạo
+  tensp: { type: String, required: true, unique: true, trim: true }, // ten san phẩm
   loaisp: { type: String, required: true, trim: true }, // Loại sản phẩm
   gia: { type: Number, required: true, min: 1 }, // Giá
   hinhanh: { type: String, default: "" }, // Hình ảnh
@@ -54,18 +54,18 @@ app.post("/add-products", upload.single("hinhanh"), async (req, res) => {
     console.log("📥 Dữ liệu nhận từ frontend:", req.body);
     console.log("📸 Ảnh nhận được:", req.file);
 
-    const { idsanpham, loaisp, gia } = req.body;
-    if (!idsanpham || !loaisp || !gia || !req.file) {
+    const { tensp, loaisp, gia } = req.body;
+    if (!tensp || !loaisp || !gia || !req.file) {
       return res.status(400).json({ error: "Vui lòng nhập đầy đủ thông tin" });
     }
 
-    const existingProduct = await Product.findOne({ idsanpham });
+    const existingProduct = await Product.findOne({ tensp });
     if (existingProduct) {
-      return res.status(400).json({ error: "ID sản phẩm đã tồn tại" });
+      return res.status(400).json({ error: "Tên sản phẩm đã tồn tại" });
     }
 
     const newProduct = new Product({
-      idsanpham,
+      tensp,
       loaisp,
       gia,
       hinhanh: req.file.filename, // Lưu tên file ảnh
@@ -80,11 +80,9 @@ app.post("/add-products", upload.single("hinhanh"), async (req, res) => {
 });
 
 // API xóa sản phẩm (Tìm bằng idsanpham thay vì _id của MongoDB)
-app.delete("/products/:idsanpham", async (req, res) => {
+app.delete("/products/:id", async (req, res) => {
   try {
-    const product = await Product.findOneAndDelete({
-      idsanpham: req.params.idsanpham,
-    });
+    const product = await Product.findByIdAndDelete(req.params.id); // Sử dụng _id
     if (!product) {
       return res.status(404).json({ error: "Sản phẩm không tồn tại" });
     }
@@ -95,7 +93,7 @@ app.delete("/products/:idsanpham", async (req, res) => {
 });
 app.put("/products-update/:id", upload.single("hinhanh"), async (req, res) => {
   try {
-    const { idsanpham, loaisp, gia } = req.body;
+    const { tensp, loaisp, gia } = req.body;
     const { id } = req.params;
 
     console.log("🆔 ID từ params:", id);
@@ -109,7 +107,7 @@ app.put("/products-update/:id", upload.single("hinhanh"), async (req, res) => {
 
     let updateFields = {};
 
-    if (idsanpham?.trim()) updateFields.idsanpham = idsanpham.trim();
+    if (tensp?.trim()) updateFields.tensp = tensp.trim();
     if (loaisp?.trim()) updateFields.loaisp = loaisp.trim();
     if (gia !== undefined && gia !== "") updateFields.gia = Number(gia);
 

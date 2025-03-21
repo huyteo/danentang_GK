@@ -27,7 +27,7 @@ interface AddProductProps {
 // }
 
 const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
-  const [idsanpham, setIdsanpham] = useState("");
+  const [tensp, setTensp] = useState("");
   const [loaisp, setLoaisp] = useState("");
   const [gia, setGia] = useState("");
   const [hinhanh, setHinhanh] = useState("");
@@ -51,13 +51,13 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
   };
 
   const handleSubmit = async () => {
-    if (!idsanpham || !loaisp || !gia || !hinhanh) {
+    if (!tensp || !loaisp || !gia || !hinhanh) {
       Alert.alert("⚠️ Lỗi", "Vui lòng điền đầy đủ thông tin!");
       return;
     }
 
     const formData = new FormData();
-    formData.append("idsanpham", idsanpham);
+    formData.append("tensp", tensp);
     formData.append("loaisp", loaisp);
     formData.append("gia", gia);
     formData.append("hinhanh", {
@@ -70,7 +70,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       Alert.alert("✅ Thành công", "Thêm sản phẩm thành công!");
 
       // Reset form
-      setIdsanpham("");
+      setTensp("");
       setLoaisp("");
       setGia("");
       setHinhanh("");
@@ -89,9 +89,9 @@ const AddProduct: React.FC<AddProductProps> = ({ onClose, onProductAdded }) => {
       <View style={styles.container}>
         <Text style={styles.title}>Thêm Sản Phẩm</Text>
         <TextInput
-          placeholder="Nhập ID sản phẩm"
-          value={idsanpham}
-          onChangeText={setIdsanpham}
+          placeholder="Nhập tên sản phẩm"
+          value={tensp}
+          onChangeText={setTensp}
           style={styles.input}
         />
         <TextInput
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     padding: 20,
     width: 330,
     height: 400,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   title: {
     fontSize: 18,
