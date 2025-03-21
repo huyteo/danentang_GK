@@ -4,11 +4,10 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-
 const app = express();
 
 mongoose
-  .connect("mongodb://192.168.1.8:27017/productDB")
+  .connect("mongodb://192.168.1.12:27017/productDB")
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 

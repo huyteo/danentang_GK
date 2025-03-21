@@ -86,7 +86,7 @@ const ProductList: React.FC = () => {
             <View style={styles.card}>
               <Image
                 source={{
-                  uri: `http://192.168.1.8:3000/uploads/${item.hinhanh}`,
+                  uri: `http://192.168.1.12:3000/uploads/${item.hinhanh}`,
                 }}
                 style={styles.image}
               />
