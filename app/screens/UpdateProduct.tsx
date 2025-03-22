@@ -83,7 +83,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
 
     try {
       const response = await axios.put(
-        `http://192.168.1.12:3000/products-update/${product._id}`,
+        `http://192.168.1.4:3000/products-update/${product._id}`,
         formData,
         {
           headers: {
@@ -105,7 +105,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
     if (!hinhanh) return undefined; // Trả về undefined thay vì null
     if (isLocalImage) return hinhanh;
     if (hinhanh.includes("http")) return hinhanh;
-    return `http://192.168.1.12:3000/uploads/${hinhanh}`;
+    return `http://192.168.1.4:3000/uploads/${hinhanh}`;
   };
 
   return (

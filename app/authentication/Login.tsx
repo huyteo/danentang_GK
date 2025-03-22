@@ -16,6 +16,7 @@ import { AxiosError } from "axios";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
 import * as WebBrowser from "expo-web-browser";
+import { makeRedirectUri } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -29,9 +30,11 @@ const Login = () => {
   const [googleRequest, googleResponse, googlePromptAsync] =
     Google.useAuthRequest({
       clientId:
-        "241808317623-nd1t9c14cji988rj12h6vg7h8brtohsk.apps.googleusercontent.com", // Thay bằng Client ID của bạn
-      redirectUri: "myapp://", // Khớp với scheme trong app.json
+        "155784027755-foh34qvo3ftp21rjkpfmkd6v7t3i6ndv.apps.googleusercontent.com", // Sử dụng Client ID từ Google Cloud Console
+      redirectUri: "https://auth.expo.io/@huypepsi/ProductManagementApp",
+      scopes: ["profile", "email"], // Thêm scopes để lấy email và thông tin hồ sơ
     });
+  console.log("Google login error:", googleResponse);
 
   // Facebook Sign-In
   const [facebookRequest, facebookResponse, facebookPromptAsync] =

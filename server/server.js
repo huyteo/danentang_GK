@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt"); // Thêm bcrypt để mã hóa mật khẩu
 const app = express();
 
 mongoose
-  .connect("mongodb://192.168.1.12:27017/productDB")
+  .connect("mongodb://192.168.1.4:27017/productDB")
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
@@ -231,12 +231,10 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Mật khẩu không đúng" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Đăng nhập thành công",
-        user: { name: user.name, email: user.email },
-      });
+    res.status(200).json({
+      message: "Đăng nhập thành công",
+      user: { name: user.name, email: user.email },
+    });
   } catch (error) {
     console.error("❌ Lỗi khi đăng nhập:", error);
     res.status(500).json({ error: "Lỗi khi đăng nhập" });
