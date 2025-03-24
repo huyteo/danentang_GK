@@ -16,13 +16,12 @@ import { AxiosError } from "axios";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
 import * as WebBrowser from "expo-web-browser";
-import { makeRedirectUri } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const Login = () => {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState(""); // Thay name thành email
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -30,17 +29,15 @@ const Login = () => {
   const [googleRequest, googleResponse, googlePromptAsync] =
     Google.useAuthRequest({
       clientId:
-        "155784027755-foh34qvo3ftp21rjkpfmkd6v7t3i6ndv.apps.googleusercontent.com", // Sử dụng Client ID từ Google Cloud Console
-      redirectUri: "https://auth.expo.io/@huypepsi/ProductManagementApp",
-      scopes: ["profile", "email"], // Thêm scopes để lấy email và thông tin hồ sơ
+        "155784027755-foh34qvo3ftp21rjkpfmkd6v7t3i6ndv.apps.googleusercontent.com", // Đã thay bằng Client ID của bạn
+      redirectUri: "productmanagement://", // Phải khớp với scheme trong app.json
     });
-  console.log("Google login error:", googleResponse);
 
   // Facebook Sign-In
   const [facebookRequest, facebookResponse, facebookPromptAsync] =
     Facebook.useAuthRequest({
-      clientId: "1153093136559347", // Thay bằng Facebook App ID
-      redirectUri: "myapp://", // Khớp với scheme trong app.json
+      clientId: "1349849022941497", // Đã thay bằng Facebook App ID của bạn
+      redirectUri: "productmanagement://", // Phải khớp với scheme trong app.json
     });
 
   // Xử lý đăng nhập Google
@@ -48,12 +45,12 @@ const Login = () => {
     if (googleResponse?.type === "success") {
       const { authentication } = googleResponse;
       if (authentication?.accessToken) {
-        // Gửi token đến server để xác thực (nếu cần)
         Alert.alert("✅ Thành công", "Đăng nhập bằng Google thành công!", [
           { text: "OK", onPress: () => router.push("/screens/ProductList") },
         ]);
       }
     } else if (googleResponse?.type === "error") {
+      console.log("Google login error:", googleResponse); // Thêm log để debug
       Alert.alert("❌ Lỗi", "Đăng nhập bằng Google thất bại!");
     }
   }, [googleResponse]);
@@ -63,24 +60,31 @@ const Login = () => {
     if (facebookResponse?.type === "success") {
       const { authentication } = facebookResponse;
       if (authentication?.accessToken) {
-        // Gửi token đến server để xác thực (nếu cần)
         Alert.alert("✅ Thành công", "Đăng nhập bằng Facebook thành công!", [
           { text: "OK", onPress: () => router.push("/screens/ProductList") },
         ]);
       }
     } else if (facebookResponse?.type === "error") {
+      console.log("Facebook login error:", facebookResponse); // Thêm log để debug
       Alert.alert("❌ Lỗi", "Đăng nhập bằng Facebook thất bại!");
     }
   }, [facebookResponse]);
 
   const handleLogin = async () => {
-    if (!name || !password) {
+    if (!email || !password) {
       Alert.alert("⚠️ Lỗi", "Vui lòng nhập đầy đủ thông tin!");
       return;
     }
 
+    // Kiểm tra định dạng email (phải là Gmail)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("⚠️ Lỗi", "Vui lòng nhập địa chỉ Gmail hợp lệ!");
+      return;
+    }
+
     try {
-      const loginData = { name, password };
+      const loginData = { email, password }; // Thay name thành email
       await login(loginData);
       Alert.alert("✅ Thành công", "Đăng nhập thành công!", [
         { text: "OK", onPress: () => router.push("/screens/ProductList") },
@@ -111,9 +115,11 @@ const Login = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Your Name"
-            value={name}
-            onChangeText={setName}
+            placeholder="Your Gmail" // Thay đổi placeholder
+            value={email} // Thay name thành email
+            onChangeText={setEmail} // Thay setName thành setEmail
+            keyboardType="email-address" // Thêm keyboardType để hỗ trợ nhập email
+            autoCapitalize="none" // Không tự động viết hoa
           />
         </View>
 

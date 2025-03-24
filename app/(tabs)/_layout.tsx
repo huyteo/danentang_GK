@@ -13,7 +13,19 @@ export default function TabLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="AddProduct" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="authentication/Login"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="authentication/Signup"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="screens/ProductList"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

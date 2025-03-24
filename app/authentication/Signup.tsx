@@ -131,7 +131,10 @@ const SignUp = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
+    paddingTop: 60, // Trên
+    paddingRight: 20, // Phải
+    paddingBottom: 20, // Dưới
+    paddingLeft: 20, // Trái
     backgroundColor: "#fff",
     alignItems: "center",
   },
