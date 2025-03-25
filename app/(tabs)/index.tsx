@@ -9,7 +9,7 @@ export default function App() {
   useEffect(() => {
     // Trì hoãn điều hướng để đảm bảo Root Layout đã được render
     setTimeout(() => {
-      router.replace("/authentication/Login");
+      router.replace("/screens/ProductList");
     }, 0);
   }, []);
 

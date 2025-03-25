@@ -168,31 +168,35 @@ const ProductList = () => {
         </View>
 
         {/* Phần category */}
-        <FlatList
-          data={categories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.categoryTab,
-                selectedCategory === item && styles.selectedCategoryTab,
-              ]}
-              onPress={() => handleCategorySelect(item)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === item && styles.selectedCategoryText,
-                ]}
-              >
-                {item.toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          )}
-          style={styles.categoryList}
-        />
+        <View>
+          <FlatList
+            data={categories}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <View style={styles.category_area}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryTab,
+                    selectedCategory === item && styles.selectedCategoryTab,
+                  ]}
+                  onPress={() => handleCategorySelect(item)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      selectedCategory === item && styles.selectedCategoryText,
+                    ]}
+                  >
+                    {item.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            style={styles.categoryList}
+          />
+        </View>
 
         {/* Ô tìm kiếm */}
         <View style={styles.searchContainer}>
@@ -218,7 +222,7 @@ const ProductList = () => {
             <View style={styles.card}>
               <Image
                 source={{
-                  uri: `http://192.168.1.3:3000/uploads/${item.hinhanh}`,
+                  uri: `http://192.168.1.23:3000/uploads/${item.hinhanh}`,
                 }}
                 style={styles.image}
               />
@@ -380,25 +384,27 @@ const styles = StyleSheet.create({
   },
   categoryList: {
     marginBottom: 5,
-    height: 40,
+    height: 80, // Đồng bộ với category_area để tránh xung đột chiều cao
   },
   categoryTab: {
     backgroundColor: "#fff",
-    paddingVertical: 10,
     borderRadius: 20,
     marginRight: 10,
-    width: 90,
-    height: 40,
+    width: 100, // Đặt cố định width để tránh thay đổi khi chọn
+    height: 40, // Đặt chiều cao cố định cho tab
     alignItems: "center",
     justifyContent: "center",
   },
   selectedCategoryTab: {
     backgroundColor: "#F5A623",
-    width: 90,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    // Không thay đổi width, giữ nguyên width: 100 từ categoryTab
+    // Giữ alignItems và justifyContent từ categoryTab, không cần ghi đè
   },
+  category_area: {
+    height: 80, // Giữ nguyên, nhưng đảm bảo đồng bộ với categoryList
+    justifyContent: "center", // Căn giữa theo chiều dọc để tab nằm giữa khu vực
+  },
+
   categoryText: {
     fontSize: 14,
     color: "#555",

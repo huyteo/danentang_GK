@@ -33,7 +33,7 @@ interface LoginData {
   password: string;
 }
 
-const API_URL = "http://192.168.1.3:3000"; // Thêm port 3000
+const API_URL = "http://192.168.1.23:3000"; // Thêm port 3000
 
 // API lấy danh sách sản phẩm
 export const getProducts = async () => {

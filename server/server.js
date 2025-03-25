@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt"); // Thêm bcrypt để mã hóa mật khẩu
 const app = express();
 
 mongoose
-  .connect("mongodb://192.168.1.3:27017/productDB")
+  .connect("mongodb://192.168.1.23:27017/productDB")
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
