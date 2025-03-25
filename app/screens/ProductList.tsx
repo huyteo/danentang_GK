@@ -8,12 +8,14 @@ import {
   StyleSheet,
   Modal,
   Platform,
+  TextInput,
 } from "react-native";
 import { getProducts, deleteProduct } from "../../scripts/api";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import AddProduct from "./AddProduct";
 import UpdateProduct from "./UpdateProduct";
 import { Stack, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Product {
   _id: string;
@@ -24,27 +26,98 @@ interface Product {
   tenanh: string;
 }
 
+interface User {
+  name: string;
+  email: string;
+}
+
 const ProductList = () => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [userModalVisible, setUserModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchProducts();
+    const initialize = async () => {
+      await loadUserData(); // Tải thông tin người dùng trước
+      fetchProducts(); // Sau đó tải danh sách sản phẩm
+    };
+    initialize();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("user");
+      console.log(
+        "Dữ liệu người dùng từ AsyncStorage trong ProductList:",
+        userData
+      );
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } else {
+        // Nếu không có thông tin người dùng, chuyển hướng về trang đăng nhập
+        console.log(
+          "Không tìm thấy thông tin người dùng, chuyển hướng về Login"
+        );
+        router.replace("/authentication/Login");
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải thông tin người dùng:", error);
+      router.replace("/authentication/Login");
+    }
+  };
 
   const fetchProducts = async () => {
     try {
       const response = await getProducts();
       console.log("Dữ liệu từ API:", response.data);
       setProducts(response.data);
+      setFilteredProducts(response.data);
+
+      const uniqueCategories = [
+        "Tất cả",
+        ...new Set(response.data.map((product: Product) => product.loaisp)),
+      ];
+      setCategories(uniqueCategories);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
+  };
+
+  const filterProducts = (category: string, query: string) => {
+    let filtered = products;
+
+    if (category !== "Tất cả") {
+      filtered = filtered.filter((product) => product.loaisp === category);
+    }
+
+    if (query.trim() !== "") {
+      filtered = filtered.filter((product) =>
+        product.tensp.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(filtered);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    filterProducts(category, searchQuery);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    filterProducts(selectedCategory, query);
   };
 
   const confirmDelete = (product: Product) => {
@@ -65,21 +138,81 @@ const ProductList = () => {
     setUpdateModalVisible(true);
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("user");
+      setUser(null);
+      setUserModalVisible(false);
+      router.replace("/authentication/Login");
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
+  };
+
+  // Gọi lại loadUserData khi mở modal để đảm bảo dữ liệu mới nhất
+  const handleOpenUserModal = async () => {
+    await loadUserData();
+    setUserModalVisible(true);
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Quản lý sản phẩm</Text>
-          <TouchableOpacity
-            onPress={() => router.push("/authentication/Signup")}
-          >
-            <Feather name="log-out" size={24} color="#F8F8FF" />
+          <TouchableOpacity onPress={handleOpenUserModal}>
+            <Feather name="user" size={24} color="#F8F8FF" />
           </TouchableOpacity>
         </View>
 
+        {/* Phần category */}
         <FlatList
-          data={products}
+          data={categories}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.categoryTab,
+                selectedCategory === item && styles.selectedCategoryTab,
+              ]}
+              onPress={() => handleCategorySelect(item)}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === item && styles.selectedCategoryText,
+                ]}
+              >
+                {item.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          )}
+          style={styles.categoryList}
+        />
+
+        {/* Ô tìm kiếm */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          <Feather
+            name="search"
+            size={20}
+            color="#555"
+            style={styles.searchIcon}
+          />
+        </View>
+
+        {/* Danh sách sản phẩm */}
+        <FlatList
+          data={filteredProducts}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.card}>
@@ -109,6 +242,7 @@ const ProductList = () => {
           )}
         />
 
+        {/* Nút thêm sản phẩm */}
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setModalVisible(true)}
@@ -116,6 +250,7 @@ const ProductList = () => {
           <Feather name="plus" size={24} color="white" />
         </TouchableOpacity>
 
+        {/* Modal thêm sản phẩm */}
         <Modal
           visible={modalVisible}
           transparent
@@ -136,6 +271,7 @@ const ProductList = () => {
           </TouchableOpacity>
         </Modal>
 
+        {/* Modal cập nhật sản phẩm */}
         <Modal
           visible={updateModalVisible}
           transparent
@@ -159,6 +295,7 @@ const ProductList = () => {
           </TouchableOpacity>
         </Modal>
 
+        {/* Modal xác nhận xóa */}
         <Modal visible={deleteModalVisible} transparent animationType="fade">
           <View style={styles.modalBackground}>
             <View style={styles.modalContainer}>
@@ -176,6 +313,43 @@ const ProductList = () => {
               </View>
             </View>
           </View>
+        </Modal>
+
+        {/* Modal hiển thị thông tin tài khoản */}
+        <Modal
+          visible={userModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setUserModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalBackground}
+            activeOpacity={1}
+            onPress={() => setUserModalVisible(false)}
+          >
+            <View
+              style={styles.modalContainer}
+              onStartShouldSetResponder={() => true}
+            >
+              <Text style={styles.modalTitle}>Tài khoản</Text>
+              {user ? (
+                <>
+                  <Text style={styles.modalMessage}>Email: {user.email}</Text>
+                  <Text style={styles.modalMessage}>Tên: {user.name}</Text>
+                </>
+              ) : (
+                <Text style={styles.modalMessage}>
+                  Chưa có thông tin người dùng
+                </Text>
+              )}
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+              >
+                <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </Modal>
       </View>
     </>
@@ -203,6 +377,54 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#F8F8FF",
+  },
+  categoryList: {
+    marginBottom: 5,
+    height: 40,
+  },
+  categoryTab: {
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 10,
+    width: 90,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  selectedCategoryTab: {
+    backgroundColor: "#F5A623",
+    width: 90,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryText: {
+    fontSize: 14,
+    color: "#555",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  selectedCategoryText: {
+    color: "#fff",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginBottom: 5,
+    paddingHorizontal: 10,
+    width: "100%",
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: "#333",
+  },
+  searchIcon: {
+    marginLeft: 10,
   },
   card: {
     flexDirection: "row",
@@ -282,7 +504,7 @@ const styles = StyleSheet.create({
   modalMessage: {
     fontSize: 14,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   modalButtons: {
     flexDirection: "row",
@@ -298,6 +520,18 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 16,
     padding: 10,
+  },
+  logoutButton: {
+    backgroundColor: "#276cf5",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  logoutButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

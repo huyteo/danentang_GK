@@ -16,12 +16,13 @@ import { AxiosError } from "axios";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
 import * as WebBrowser from "expo-web-browser";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Thêm AsyncStorage
 
 WebBrowser.maybeCompleteAuthSession();
 
 const Login = () => {
   const router = useRouter();
-  const [email, setEmail] = useState(""); // Thay name thành email
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -29,15 +30,15 @@ const Login = () => {
   const [googleRequest, googleResponse, googlePromptAsync] =
     Google.useAuthRequest({
       clientId:
-        "155784027755-foh34qvo3ftp21rjkpfmkd6v7t3i6ndv.apps.googleusercontent.com", // Đã thay bằng Client ID của bạn
-      redirectUri: "productmanagement://", // Phải khớp với scheme trong app.json
+        "155784027755-foh34qvo3ftp21rjkpfmkd6v7t3i6ndv.apps.googleusercontent.com",
+      redirectUri: "productmanagement://",
     });
 
   // Facebook Sign-In
   const [facebookRequest, facebookResponse, facebookPromptAsync] =
     Facebook.useAuthRequest({
-      clientId: "1349849022941497", // Đã thay bằng Facebook App ID của bạn
-      redirectUri: "productmanagement://", // Phải khớp với scheme trong app.json
+      clientId: "1349849022941497",
+      redirectUri: "productmanagement://",
     });
 
   // Xử lý đăng nhập Google
@@ -45,12 +46,22 @@ const Login = () => {
     if (googleResponse?.type === "success") {
       const { authentication } = googleResponse;
       if (authentication?.accessToken) {
-        Alert.alert("✅ Thành công", "Đăng nhập bằng Google thành công!", [
-          { text: "OK", onPress: () => router.push("/screens/ProductList") },
-        ]);
+        // Lấy thông tin người dùng từ Google (cần gọi API của Google)
+        // Đây là ví dụ, bạn cần thêm bước lấy thông tin người dùng
+        const userInfo = {
+          name: "Google User", // Thay bằng thông tin thực từ Google API
+          email: "googleuser@example.com", // Thay bằng thông tin thực từ Google API
+        };
+
+        // Lưu thông tin người dùng vào AsyncStorage
+        AsyncStorage.setItem("user", JSON.stringify(userInfo)).then(() => {
+          Alert.alert("✅ Thành công", "Đăng nhập bằng Google thành công!", [
+            { text: "OK", onPress: () => router.push("/screens/ProductList") },
+          ]);
+        });
       }
     } else if (googleResponse?.type === "error") {
-      console.log("Google login error:", googleResponse); // Thêm log để debug
+      console.log("Google login error:", googleResponse);
       Alert.alert("❌ Lỗi", "Đăng nhập bằng Google thất bại!");
     }
   }, [googleResponse]);
@@ -60,12 +71,22 @@ const Login = () => {
     if (facebookResponse?.type === "success") {
       const { authentication } = facebookResponse;
       if (authentication?.accessToken) {
-        Alert.alert("✅ Thành công", "Đăng nhập bằng Facebook thành công!", [
-          { text: "OK", onPress: () => router.push("/screens/ProductList") },
-        ]);
+        // Lấy thông tin người dùng từ Facebook (cần gọi API của Facebook)
+        // Đây là ví dụ, bạn cần thêm bước lấy thông tin người dùng
+        const userInfo = {
+          name: "Facebook User", // Thay bằng thông tin thực từ Facebook API
+          email: "facebookuser@example.com", // Thay bằng thông tin thực từ Facebook API
+        };
+
+        // Lưu thông tin người dùng vào AsyncStorage
+        AsyncStorage.setItem("user", JSON.stringify(userInfo)).then(() => {
+          Alert.alert("✅ Thành công", "Đăng nhập bằng Facebook thành công!", [
+            { text: "OK", onPress: () => router.push("/screens/ProductList") },
+          ]);
+        });
       }
     } else if (facebookResponse?.type === "error") {
-      console.log("Facebook login error:", facebookResponse); // Thêm log để debug
+      console.log("Facebook login error:", facebookResponse);
       Alert.alert("❌ Lỗi", "Đăng nhập bằng Facebook thất bại!");
     }
   }, [facebookResponse]);
@@ -84,8 +105,18 @@ const Login = () => {
     }
 
     try {
-      const loginData = { email, password }; // Thay name thành email
-      await login(loginData);
+      const loginData = { email, password };
+      const response = await login(loginData);
+      console.log("Dữ liệu người dùng từ API login:", response.data);
+
+      // Lưu thông tin người dùng vào AsyncStorage
+      const userInfo = response.data.user; // API trả về { message: ..., user: { name, email } }
+      await AsyncStorage.setItem("user", JSON.stringify(userInfo));
+
+      // Kiểm tra xem dữ liệu đã lưu thành công chưa
+      const storedUser = await AsyncStorage.getItem("user");
+      console.log("Dữ liệu người dùng đã lưu vào AsyncStorage:", storedUser);
+
       Alert.alert("✅ Thành công", "Đăng nhập thành công!", [
         { text: "OK", onPress: () => router.push("/screens/ProductList") },
       ]);
@@ -115,11 +146,11 @@ const Login = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Your Gmail" // Thay đổi placeholder
-            value={email} // Thay name thành email
-            onChangeText={setEmail} // Thay setName thành setEmail
-            keyboardType="email-address" // Thêm keyboardType để hỗ trợ nhập email
-            autoCapitalize="none" // Không tự động viết hoa
+            placeholder="Your Gmail"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
 
