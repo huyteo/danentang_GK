@@ -1,3 +1,4 @@
+// UpdateProduct.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -70,7 +71,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
     }
 
     const formData = new FormData();
-    formData.append("idsanpham", tensp);
+    formData.append("tensp", tensp); // Sửa từ "idsanpham" thành "tensp"
     formData.append("loaisp", loaisp);
     formData.append("gia", gia);
     if (tenhinhanh) {
@@ -83,7 +84,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
 
     try {
       const response = await axios.put(
-        `http://192.168.1.23:3000/products-update/${product._id}`,
+        `http://192.168.1.16:3000/products-update/${product._id}`,
         formData,
         {
           headers: {
@@ -102,10 +103,10 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
 
   // Xác định URI của ảnh để hiển thị
   const getImageUri = () => {
-    if (!hinhanh) return undefined; // Trả về undefined thay vì null
+    if (!hinhanh) return undefined;
     if (isLocalImage) return hinhanh;
     if (hinhanh.includes("http")) return hinhanh;
-    return `http://192.168.1.23:3000/uploads/${hinhanh}`;
+    return `http://192.168.1.16:3000/uploads/${hinhanh}`;
   };
 
   return (
@@ -113,7 +114,7 @@ const UpdateProduct: React.FC<UpdateProductProps> = ({
       <View style={styles.container}>
         <Text style={styles.title}>Cập Nhật Sản Phẩm</Text>
         <TextInput
-          placeholder="Nhập ID sản phẩm"
+          placeholder="Nhập tên sản phẩm"
           value={tensp}
           onChangeText={setTensp}
           style={styles.input}

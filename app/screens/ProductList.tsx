@@ -48,8 +48,8 @@ const ProductList = () => {
 
   useEffect(() => {
     const initialize = async () => {
-      await loadUserData(); // Tải thông tin người dùng trước
-      fetchProducts(); // Sau đó tải danh sách sản phẩm
+      await loadUserData();
+      fetchProducts();
     };
     initialize();
   }, []);
@@ -65,7 +65,6 @@ const ProductList = () => {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
       } else {
-        // Nếu không có thông tin người dùng, chuyển hướng về trang đăng nhập
         console.log(
           "Không tìm thấy thông tin người dùng, chuyển hướng về Login"
         );
@@ -149,10 +148,17 @@ const ProductList = () => {
     }
   };
 
-  // Gọi lại loadUserData khi mở modal để đảm bảo dữ liệu mới nhất
   const handleOpenUserModal = async () => {
     await loadUserData();
     setUserModalVisible(true);
+  };
+
+  const handleProductPress = (product: Product) => {
+    console.log("Điều hướng đến ProductDetail, stack hiện tại:", router);
+    router.push({
+      pathname: "/screens/ProductDetail",
+      params: { product: JSON.stringify(product) },
+    });
   };
 
   return (
@@ -163,7 +169,9 @@ const ProductList = () => {
         <View style={styles.header}>
           <Text style={styles.headerText}>Quản lý sản phẩm</Text>
           <TouchableOpacity onPress={handleOpenUserModal}>
-            <Feather name="user" size={24} color="#F8F8FF" />
+            <View style={styles.userIconWrapper}>
+              <Feather name="user" size={24} color="#F8F8FF" />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -218,11 +226,15 @@ const ProductList = () => {
         <FlatList
           data={filteredProducts}
           keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => handleProductPress(item)}
+            >
               <Image
                 source={{
-                  uri: `http://192.168.1.23:3000/uploads/${item.hinhanh}`,
+                  uri: `http://192.168.1.16:3000/uploads/${item.hinhanh}`,
                 }}
                 style={styles.image}
               />
@@ -236,13 +248,25 @@ const ProductList = () => {
                   </Text>
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => handleEdit(item)}>
-                <Feather name="edit" size={20} color="#7187f5" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => confirmDelete(item)}>
-                <MaterialIcons name="delete" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation(); // Ngăn sự kiện onPress của card
+                    handleEdit(item);
+                  }}
+                >
+                  <Feather name="edit" size={20} color="#7187f5" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation(); // Ngăn sự kiện onPress của card
+                    confirmDelete(item);
+                  }}
+                >
+                  <MaterialIcons name="delete" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           )}
         />
 
@@ -377,6 +401,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+  userIconWrapper: {
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    padding: 6,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   headerText: {
     fontSize: 22,
     fontWeight: "bold",
@@ -384,27 +415,24 @@ const styles = StyleSheet.create({
   },
   categoryList: {
     marginBottom: 5,
-    height: 80, // Đồng bộ với category_area để tránh xung đột chiều cao
+    height: 80,
   },
   categoryTab: {
     backgroundColor: "#fff",
-    borderRadius: 20,
-    marginRight: 10,
-    width: 100, // Đặt cố định width để tránh thay đổi khi chọn
-    height: 40, // Đặt chiều cao cố định cho tab
+    borderRadius: 25,
+    marginRight: 7,
+    width: 100,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   selectedCategoryTab: {
     backgroundColor: "#F5A623",
-    // Không thay đổi width, giữ nguyên width: 100 từ categoryTab
-    // Giữ alignItems và justifyContent từ categoryTab, không cần ghi đè
   },
   category_area: {
-    height: 80, // Giữ nguyên, nhưng đảm bảo đồng bộ với categoryList
-    justifyContent: "center", // Căn giữa theo chiều dọc để tab nằm giữa khu vực
+    height: 80,
+    justifyContent: "center",
   },
-
   categoryText: {
     fontSize: 14,
     color: "#555",
@@ -466,6 +494,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 14,
     fontWeight: "bold",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10, // Khoảng cách giữa các nút
   },
   fab: {
     position: "absolute",

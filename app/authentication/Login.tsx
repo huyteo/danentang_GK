@@ -136,12 +136,12 @@ const Login = () => {
       <ScrollView contentContainerStyle={styles.container}>
         <Image
           source={{
-            uri: "https://img.freepik.com/free-vector/workspace-concept-illustration_114360-1412.jpg",
+            uri: "https://colorlib.com/etc/regform/colorlib-regform-7/images/signup-image.jpg",
           }}
           style={styles.image}
         />
 
-        <Text style={styles.title}>Sign up</Text>
+        <Text style={styles.title}>Login</Text>
 
         <View style={styles.inputContainer}>
           <TextInput
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   button: {
-    backgroundColor: "#87CEEB",
+    backgroundColor: "#477dd6",
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 10,

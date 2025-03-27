@@ -56,7 +56,13 @@ const SignUp = () => {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>SIGN UP</Text>
+        <Image
+          source={{
+            uri: "https://colorlib.com/etc/regform/colorlib-regform-7/images/signin-image.jpg",
+          }}
+          style={styles.image}
+        />
+        <Text style={styles.title}>Sign up</Text>
 
         <View style={styles.inputContainer}>
           <TextInput
@@ -116,13 +122,6 @@ const SignUp = () => {
         <TouchableOpacity onPress={() => router.push("/authentication/Login")}>
           <Text style={styles.link}>I am already member</Text>
         </TouchableOpacity>
-
-        <Image
-          source={{
-            uri: "https://img.freepik.com/free-vector/workspace-concept-illustration_114360-1412.jpg",
-          }}
-          style={styles.image}
-        />
       </ScrollView>
     </>
   );
@@ -137,6 +136,12 @@ const styles = StyleSheet.create({
     paddingLeft: 20, // Trái
     backgroundColor: "#fff",
     alignItems: "center",
+  },
+  image: {
+    width: 320,
+    height: 210,
+    resizeMode: "contain",
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
@@ -171,7 +176,7 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   button: {
-    backgroundColor: "#87CEEB",
+    backgroundColor: "#477dd6",
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 10,
@@ -186,11 +191,6 @@ const styles = StyleSheet.create({
     color: "#000",
     textDecorationLine: "underline",
     marginBottom: 20,
-  },
-  image: {
-    width: 300,
-    height: 200,
-    resizeMode: "contain",
   },
 });
 
